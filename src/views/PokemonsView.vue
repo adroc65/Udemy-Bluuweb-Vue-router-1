@@ -1,7 +1,8 @@
 <script setup>
-import axios from 'axios'
+
 import { ref, onMounted } from 'vue'
-import PaginatePoke from '../components/PaginatePoke.vue';
+import PaginatePoke from '@/components/PaginatePoke.vue';
+import { useGetData } from '@/composables/getData.js'
 
     // Paginador
     const itemXpagina = 15;
@@ -10,21 +11,21 @@ import PaginatePoke from '../components/PaginatePoke.vue';
     const next = () => {
         inicio.value += itemXpagina
         fin.value += itemXpagina
-        getData()
+        getData(`https://pokeapi.co/api/v2/pokemon?offset=${inicio.value}&limit=${itemXpagina}`)
        
     }
     const prev = () =>{
         inicio.value -= itemXpagina
         fin.value -= itemXpagina
-        getData()
+        getData(`https://pokeapi.co/api/v2/pokemon?offset=${inicio.value}&limit=${itemXpagina}`)
         
     }
     const maxLength = 620
-
-    // Llamando a la API
-    const pokemons = ref([])
     
-   
+    // Se lee la lista de pokemons.
+    const {data, loading, getData, error} = useGetData()
+
+   /*
     const getData = async () =>{
         try {
             const url = `https://pokeapi.co/api/v2/pokemon?offset=${inicio.value}&limit=${itemXpagina}`
@@ -36,9 +37,10 @@ import PaginatePoke from '../components/PaginatePoke.vue';
             console.log(error)
         }
     }
-
+    */
+    
     onMounted(() => {
-        getData();
+        getData(`https://pokeapi.co/api/v2/pokemon?offset=${inicio.value}&limit=${itemXpagina}`);
     });
 
 </script>
@@ -46,23 +48,28 @@ import PaginatePoke from '../components/PaginatePoke.vue';
 <template>
     <div class="pokemon">
         <h1>Pokemons View</h1>
-        <PaginatePoke 
-            :inicio="inicio"
-            :fin="fin"
-            :maxLength="maxLength"
-            @next="next"
-            @prev="prev"
-        />
-        <ul class="list-group text-center">
-            <li 
-                class="list-group-item list-group-item-action"
-                v-for="poke in pokemons"
-                :key="poke.name"
-            >
-                <router-link :to="`/pokemons/${poke.name}`">
-                    {{ poke.name.toUpperCase() }} 
-                </router-link>
-            </li>
-        </ul>
+        <p v-if="loading"> Cargando Información ... </p>
+        <div class="alert alert-danger mt-2" v-if="error">{{ error }}</div>
+        <div v-if="data">
+            <PaginatePoke 
+                :inicio="inicio"
+                :fin="fin"
+                :maxLength="maxLength"
+                @next="next"
+                @prev="prev"
+            />
+            <ul class="list-group text-center">
+                <li 
+                    class="list-group-item list-group-item-action"
+                    v-for="poke in data.results"
+                    :key="poke.name"
+                >
+                    <router-link :to="`/pokemons/${poke.name}`">
+                        {{ poke.name.toUpperCase() }} 
+                    </router-link>
+                </li>
+            </ul>
+        </div>
+        
     </div>
 </template>
