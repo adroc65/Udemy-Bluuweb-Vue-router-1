@@ -2,10 +2,13 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGetData } from '@/composables/getData.js'
+import { useFavoritosStore } from '@/stores/favoritos.js'
 
 
     const route = useRoute()
     const router = useRouter()
+    const useFavoritos = useFavoritosStore()
+    const { add, findPoke } = useFavoritos
 
     const back = () => {
         router.push('/pokemons')
@@ -39,12 +42,21 @@ import { useGetData } from '@/composables/getData.js'
 
         <div class="abs-center" v-if="error">
             <div class="alert alert-danger mt-2" >No existe el Pokemon!</div>
+            <button @click="back" type="button" class="btn btn-dark">Volver</button>
         </div>
         
         <div class="abs-center"  v-if="data">
             <img :src="data.sprites?.other.home.front_default" alt="pokemon image">
             <h1>Info, ID: {{ data.id }} - Name: {{ data.name.toUpperCase() }} </h1>
-            <button @click="back" type="button" class="btn btn-dark">Volver</button>
+            <div class="btn-group" role="group" aria-label="Basic mixed styles">
+                <button @click="back" type="button" class="btn btn-dark">Volver</button>
+                <button 
+                    @click="add(data)" 
+                    :disabled="findPoke(data.name)"
+                    type="button" 
+                    class="btn btn-success">Favoritos</button>
+            </div>
+           
         </div>
         
     </div>

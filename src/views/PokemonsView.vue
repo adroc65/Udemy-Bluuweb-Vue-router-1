@@ -5,42 +5,39 @@ import PaginatePoke from '@/components/PaginatePoke.vue';
 import { useGetData } from '@/composables/getData.js'
 
     // Paginador
-    const itemXpagina = 15;
-    const inicio = ref(0);
-    const fin = ref(itemXpagina);
-    const next = () => {
-        inicio.value += itemXpagina
-        fin.value += itemXpagina
-        getData(`https://pokeapi.co/api/v2/pokemon?offset=${inicio.value}&limit=${itemXpagina}`)
-       
-    }
-    const prev = () =>{
-        inicio.value -= itemXpagina
-        fin.value -= itemXpagina
-        getData(`https://pokeapi.co/api/v2/pokemon?offset=${inicio.value}&limit=${itemXpagina}`)
-        
-    }
-    const maxLength = 620
-    
+    const itemXpagina = 20;
+    const arrayPg = ref({
+        inicio: 0, 
+        fin: itemXpagina,
+        itemXpg: itemXpagina,
+        maxLength: 620,
+    })
     // Se lee la lista de pokemons.
     const {data, loading, getData, error} = useGetData()
-
-   /*
-    const getData = async () =>{
-        try {
-            const url = `https://pokeapi.co/api/v2/pokemon?offset=${inicio.value}&limit=${itemXpagina}`
-            //console.log(url)
-            const { data } = await axios.get(url)
-            pokemons.value = data.results
-            //console.log(pokemons.value)
-        } catch (error) {
-            console.log(error)
-        }
+    
+    const cargarPoke = () => {
+        localStorage.setItem('paginador', JSON.stringify(arrayPg.value))
+        getData(`https://pokeapi.co/api/v2/pokemon?offset=${arrayPg.value.inicio}&limit=${arrayPg.value.itemXpg}`)
     }
-    */
+
+    const next = () => {
+        arrayPg.value.inicio += arrayPg.value.itemXpg
+        arrayPg.value.fin += arrayPg.value.itemXpg
+        cargarPoke()
+    }
+
+    const prev = () =>{
+        arrayPg.value.inicio -= arrayPg.value.itemXpg
+        arrayPg.value.fin -= arrayPg.value.itemXpg
+        cargarPoke()
+    }
     
     onMounted(() => {
-        getData(`https://pokeapi.co/api/v2/pokemon?offset=${inicio.value}&limit=${itemXpagina}`);
+        // Se detecta si hay valor de paginador en Local Storage
+        if (localStorage.getItem("paginador")) {
+            arrayPg.value = JSON.parse(localStorage.getItem("paginador"))
+        }
+        cargarPoke()
     });
 
 </script>
@@ -52,9 +49,9 @@ import { useGetData } from '@/composables/getData.js'
         <div class="alert alert-danger mt-2" v-if="error">{{ error }}</div>
         <div v-if="data">
             <PaginatePoke 
-                :inicio="inicio"
-                :fin="fin"
-                :maxLength="maxLength"
+                :inicio="arrayPg.inicio"
+                :fin="arrayPg.fin"
+                :maxLength="arrayPg.maxLength"
                 @next="next"
                 @prev="prev"
             />
